@@ -302,3 +302,67 @@ val builder = NotificationCompat.Builder(context, "sync_channel")
     .setSmallIcon(R.drawable.ic_sync)
     .addExtras(Bundle().apply { putString("miui.focus.param", paramJson) })
 ```
+
+### Example F: Drag & Drop Sharing + Narrow Fonts (TextInfo & ShareData)
+This example highlights typography control (`narrowFont`) and includes the elusive `shareData` root property. When expanded, the user can long-press and drag the island out of the status bar to invoke Android's global Drag-and-Drop / Intent Share framework, transferring a payload or image into a dropping app.
+
+**Code Builder:**
+```kotlin
+val paramJson = """
+{
+  "param_v2": {
+    "protocol": 3,
+    "business": "shareable_clipboard",
+    "updatable": true,
+    "isShowNotification": true,
+    "highlightColor": "#FF3B30",
+    "param_island": {
+      "shareData": {
+        "title": "Copied Text",
+        "content": "Drag to share anywhere!",
+        "pic": "ic_drag_preview",
+        "shareContent": "Hey, check out this secret copied text!",
+        "sharePic": ""
+      },
+      "smallIslandArea": {
+        "picInfo": { "type": 0, "pic": "ic_clipboard" }
+      },
+      "bigIslandArea": {
+        "imageTextInfoLeft": {
+          "type": 1,
+          "picInfo": { "type": 0, "pic": "ic_clipboard" },
+          "textInfo": {
+            "title": "Clipboard Manager",
+            "isTitleDigit": true,        // Uses System Clock UI Font
+            "narrowFont": true,          // Compresses width
+            "turnAnim": true             // Flips letters vertically
+          }
+        },
+        "imageTextInfoRight": {
+          "type": 6,                     // ModuleTextOverIcon layout
+          "textInfo": {
+            "content": "DRAG ME",
+            "showHighlightColor": true
+          }
+        }
+      }
+    },
+    "baseInfo": {
+      "type": 1,
+      "title": "Copied to Clipboard",
+      "content": "Drag from Island to share."
+    },
+    "iconTextInfo": {
+      "animIconInfo": { "type": 0, "src": "ic_clipboard" },
+      "title": "Copied to Clipboard",
+      "content": "Drag from Island to share."
+    }
+  },
+  "isShowNotification": true
+}
+""".trimIndent()
+
+val builder = NotificationCompat.Builder(context, "clipboard_channel")
+    .setSmallIcon(R.drawable.ic_clipboard)
+    .addExtras(Bundle().apply { putString("miui.focus.param", paramJson) })
+```

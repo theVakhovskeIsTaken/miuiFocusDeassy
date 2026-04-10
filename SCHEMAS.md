@@ -38,6 +38,18 @@ Primarily used in `smallIslandArea` to wrap an icon with a ring progress indicat
 }
 ```
 
+### `ShareData` (Drag & Drop Intent Creation)
+This completely undocumented model enables **Native Drag & Drop**. If present, a user can literally drag the island down or onto another app to invoke Android's global Share menu or initiate a Drag & Drop transfer!
+```json
+"shareData": {
+  "title": "Shared Title",                // Title of the Drag Shadow card
+  "content": "Description",               // Description of the Drag Shadow card
+  "pic": "ic_share_preview",              // Preview image for the Drag Shadow card
+  "shareContent": "URL or Payload",       // The actual data string sent to the receiving app
+  "sharePic": "ic_share_image"            // The actual image sent to the receiving app
+}
+```
+
 ### `FixedWidthDigitInfo` & `SameWidthDigitInfo` (Clocks/Timers/Scores)
 Used to render performance-sensitive, highly animated digit displays without jitter.
 ```json
@@ -54,6 +66,20 @@ Used to render performance-sensitive, highly animated digit displays without jit
     "timerWhen": 1672531200000,   // Epoch absolute target time
     "timerSystemCurrent": 0       // System time reference point
   }
+}
+```
+
+### `TextInfo` (Typographic Control & Titles)
+Used as the basic building block for text manipulation, supporting narrow fonts and custom styling.
+```json
+"textInfo": {
+  "content": "Main Body",                 // The main text string
+  "frontTitle": "Prefix: ",               // Attached to the front of the content
+  "title": "Header",                      // Standard title string
+  "isTitleDigit": true,                   // Forces the system clock digit font
+  "narrowFont": true,                     // Applies MIUI's narrow condensed typeface
+  "showHighlightColor": true,             // Tints text with the root highlightColor
+  "turnAnim": true                        // Enables flip 3D animation when text changes
 }
 ```
 
