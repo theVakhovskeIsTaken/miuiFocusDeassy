@@ -1,0 +1,203 @@
+# MIUI Dynamic Island (Smart Hub) Internal Analysis
+
+This document outlines the internal structure, parsing logic, and available options for the MIUI/HyperOS "Dynamic Island" (Smart Hub) plugin, based on decompiled system source code.
+
+---
+
+## 1. Core Logic Overview
+
+The Dynamic Island system is a SystemUI plugin that intercepts notifications containing specific "focus" extras. It manages a set of stateful views (Small Island, Big Island, Expanded) and populates them using a template system.
+
+### How Notifications Are Read
+1. **Extraction**: `DynamicIslandUtils` intercepts `StatusBarNotification` (SBN).
+2. **Key Extras**:
+   - `miui.focus.param`: The primary JSON payload for standard templates.
+   - `miui.focus.rv`: Injects a custom `RemoteViews` directly into the island (original app layout).
+   - `miui.focus.param.custom`: JSON payload used specifically when `miui.focus.rv` is provided.
+   - `miui.ticker.data`: Base64 encoded ticker information.
+   - `miui.focus.pics`: A Bundle of bitmaps/drawables.
+3. **Dismissal Rule**: If the payload contains `"updatable": false`, the plugin automatically dismisses the source notification from the shade after showing the island.
+
+---
+
+## 2. JSON Structure (`miui.focus.param`)
+
+The root object usually expects a `param_v2` block. The system maps this JSON to the `IslandTemplate` model.
+
+### Available Options (Root)
+| Option | Type | Description |
+| :--- | :--- | :--- |
+| `business` | String | Unique identifier for the notification type (e.g., "live_updates"). |
+| `islandPriority` | Int | 0: High, 1: Middle, 2: Low. **CRITICAL:** If priority is `2`, the system will **NOT** allow the small island to expand into the Big Island when clicked. Use `0` or `1` for interactive layouts! |
+| `islandTimeout` | Int | Time (ms) before the island auto-collapses. |
+| `expandedTime` | Int | Time (ms) before the Expanded state auto-collapses back to Small Island (defaults usually to ~10000ms if left blank). |
+| `dismissIsland` | Boolean | If true, removes the island. |
+| `highlightColor` | String | HEX color for focus effects. |
+| `needCloseAnimation`| Boolean| Whether to play a shrink animation on exit. |
+
+---
+
+## 3. Template Areas & Modules
+
+The `IslandTemplateFactory` determines the layout based on the presence of specific keys.
+
+### Small Island Area (`smallIslandArea`)
+Used when the island is in its smallest "pill" state.
+- **`picInfo`**: Standard icon/badge.
+- **`combinePicInfo`**: Used for `moduleCombinePic`. Wraps an icon with a progress bar (e.g., download status).
+- **`moduleSmallTextOverIcon`**: Triggered when `ImageTextInfoRight` type is 6.
+
+### Big Island Area (`bigIslandArea`)
+Used when the island expands horizontally or is long-pressed.
+- **Left Module (`imageTextInfoLeft`)**:
+  - `Type 1`: `moduleImageText_1` (Icon + Text).
+  - `Type 5`: `moduleIconFixedWidthText` (Clock/Timer style).
+- **Right Module (`imageTextInfoRight` / `progressTextInfo`)**:
+  - `Type 2`: `moduleImageText_2` (Status text).
+  - `Type 3/4`: `moduleImageText_3` / `moduleImageText_4` (Progress bars).
+  - `Type 6`: `moduleTextOverIcon` (Large badge on icon).
+  - **`fixedWidthDigitInfo`**: High-performance digit rendering (e.g., sports scores).
+
+---
+
+## 4. Sample `dumpsys notification` Structure
+
+If you were to inspect a "Native Upload" style notification (like the one implemented in this app), the `miui.focus.param` string would reconstruct to this:
+
+```json
+{
+  "param_v2": {
+    "protocol": 3,
+    "business": "upload_status",
+    "updatable": true,
+    "islandPriority": 0,
+    "picInfo": {
+      "type": 0,
+      "pic": "miui.focus.pic_default_icon",
+      "loop": false
+    },
+    "param_island": {
+      "smallIslandArea": {
+        "combinePicInfo": {
+          "picInfo": { "type": 0, "pic": "miui.focus.pic_default_icon" },
+          "progressInfo": {
+            "progress": 45,
+            "colorReach": "#34C759",
+            "isCCW": false
+          }
+        }
+      },
+      "bigIslandArea": {
+        "imageTextInfoLeft": {
+          "type": 1,
+          "title": "Uploading File...",
+          "subTitle": "4.2 MB / 10 MB"
+        },
+        "progressTextInfo": {
+          "progressInfo": {
+            "progress": 45,
+            "colorReach": "#34C759",
+            "isCCW": true
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+---
+
+## 5. Advanced Rendering Features
+
+### Progress Bars (`multiProgressInfo`)
+Recently discovered support for segmented progress:
+- **`points`**: Integer. Dividers for the progress bar.
+- **`color`**: HEX. Applied to the segments.
+
+### Pic Types (`picInfo`)
+- **Type 0**: Android Resource ID or named system resource.
+- **Type 1**: File system path (for external images).
+- **Type 2**: Lottie View ID (for animations).
+
+---
+
+## 6. System Properties & Feature Flags
+
+The behavior of the Smart Hub can be toggled or tuned using `SystemProperties` (accessible via ADB).
+
+| Property | Default | Description |
+| :--- | :--- | :--- |
+| `persist.sys.feature.island` | `true` | Master switch for the Dynamic Island feature. |
+| `persist.sys.feature.island.shader` | `true` | Enables/Disables advanced shaders (blur/glow effects). |
+| `persist.sys.feature.island.animation` | `true` | Enables/Disables all Island-related animations. |
+| `island_animator_duration_scale` | `1.0` | (Global Setting) Scales the duration of island transitions. |
+| `debug.sysui.notif.island.asbi` | `false` | Debug flag for Avoid Screen Burn-In (ASBI) logic. |
+
+
+### Scenario Logic
+Located in `DynamicIslandScenarioUtils`, the system tracks "jank" for every transition:
+- `ISLAND_OPEN_APP_JANK (358)`
+- `ISLAND_SWITCH_SMALL_TO_BIG (440)`
+- This data is reported back to the system to optimize animation smoothing in real-time.
+
+---
+
+## 7. The Deep Cuts: Obscure Extras & Behaviors
+
+While `miui.focus.param` is the primary workhorse, there are many undocumented `Extras` that allow for deep system integrations. These were found directly in `DynamicIslandConstants.java`.
+
+### Custom RemoteViews Injection
+- **`miui.focus.rv`** (Parcelable `RemoteViews`): The holy grail of customization. If this extra is present, the Dynamic Island **skips** the entire JSON layout engine and instead inflates your custom `RemoteViews` directly into the island frame. 
+
+### Direct IPC System Control (`handleDynamicIsland`)
+The system listens to an internal IPC bundle parser (`DynamicIslandWindowViewController.handleDynamicIsland`) that bypasses notifications altogether. If you can push a `Bundle` with `action_key` into the SystemUI provider, you have god-mode control over the active island:
+- **`action_island_max_width` / `action_update_island_dimen_data`**: Dynamically stretch, shrink, or freeze the island pill constraints programmatically.
+- **`action_remove_island`**: Programmatically nuke an island by sending its `extra_island_deleted_key`.
+- **`action_command_queue_disable`**: Sending `extra_command_queue_disable_1` literally paralyzes the Android Status Bar while your island is active (blocks the notification shade pull-down and navigation buttons—an ultimate "kiosk" mode for the island).
+- **`action_enter_modal`**: Converts the island into an interactive modal overlay (used internally by "Mi Play" audio routing).
+
+### Always-On Display (AOD) Integration
+The island doesn't sleep. The `DynamicIslandWindowViewController` actively stalks `Settings.Secure` for `full_screen_aod_on` and `doze_always_on`. If enabled, the island renders natively, at a low framerate, directly on top of the AMOLED Always-On Display, meaning clocks and scores will passively tick in Doze mode.
+
+### Disabling MIUI Launcher Interference (Hijacking)
+The MiuiHome Launcher natively intercepts app animations to draw its own fake island transitions. If you're building a custom island app and fighting the system, `DynamicIslandAnimUtils` listens to `Settings.Global`:
+- `support_dynamic_island`
+- `support_dynamic_island_middle`
+Setting these globals to `false` instructs the stock launcher to BACK OFF and stops it from executing native element transitions (`persist.sys.element_transition_supported`), giving you full control over the rendering.
+
+### Advanced Gesture Mapping (`SwipeEventCoordinator`)
+The island uses a sophisticated gesture matrix (`DynamicIslandTouchInteractor`), not just standard clicks:
+- **Swipe Down (Y < 0)**: Transforms the pill into `ExpandedStateHandler` layout.
+- **Swipe Left / Right (X > 50px)**: Triggers `DeletedEventCoordinator`, popping the current island off the stack and revealing the `HiddenStateHandler` (the island beneath it).
+- **Monitored Touch Zone**: The gesture boundaries extend downwards using `action_expand_state_monitored_touch` mapped to `OneHandModeUtils`, effectively shrinking the physical touch zone diagonally.
+
+### AppLock Auto-Blur (`AppLockBlurIntercept`)
+In `AppLockController.java`, the system actively monitors `Settings.Secure.access_control_lock_enabled`. If an app (e.g., WhatsApp) is locked via MIUI AppLock and posts an island notification, the island's `DynamicIslandContentView` invokes a real-time blur overlay. You cannot inject text into the `BigIslandArea` until the user clears the fingerprint prompt.
+
+### The Luminescent Backlight (`DynamicGlowEffectView`)
+If a payload contains `miui.effect.color`, it invokes a dedicated `LightBgView`. Because the island sits in `Z-Order` over the display, the glow isn't just a shadow—it's a mapped alpha volumetric shader that creates an "aperture" bleed effect beneath the black pill.
+- **`miui.focus.param.custom`**: The JSON payload used specifically in tandem with `miui.focus.rv` to define the dimensions and runtime behaviors of the custom view.
+
+### Advanced Visuals & Effects
+- **`miui.focus.pics`** (Bundle): Instead of passing image names or paths, this allows packing raw `Bitmap` objects directly into the notification for the island to use.
+- **`miui.ticker.data`** (String): A Base64-encoded payload that defines the text/icon ticker that slides out horizontally before the island expands.
+- **Glow & Shaders**:
+  - `miui.effect.color`: HEX color applied to the surrounding blur/glow shadow of the island.
+  - `miui.effect.src` & `miui.bigIsland.effect.src`: Used to inject specific Lottie animations into the background shader itself, enabling custom moving auras.
+
+### Window & Interaction Behaviors
+- **`miui.exitFloating`**: Boolean that dictates if dismissing/swiping the island should throw the origin app into a "floating window" (freeform) mode instead of closing it.
+- **`extra_modal_focus_shift_key`**: Handles focus switching within the Mi Play/Home ecosystem.
+- **`miui.focus.isPromoted`**: Boolean indicating the notification is a promoted ongoing service, overriding standard collapse behaviors (e.g., for ongoing phone calls).
+
+---
+
+## 8. Deep Dive Schemas & Examples
+
+Due to the massive amount of configuration objects and parameters supported by the Miui System UI, we have split the exhaustive documentation into separate sub-files. 
+
+- **[Exhaustive JSON Schemas (`SCHEMAS.md`)](./SCHEMAS.md)**: Contains the exact properties, mappings, and full raw JSON formats for `PicInfo`, `ProgressInfo`, `SameWidthDigitInfo`, `CombinePicInfo`, and the structural nodes.
+- **[The Grimoire: Implementation Examples (`EXAMPLES.md`)](./EXAMPLES.md)**: Contains complete, real-world, copy-pasteable snippets of `NotificationCompat.Builder` implementations, covering extreme edge-cases like injecting `RemoteViews`, `miui.focus.pics` direct Bitmap bypassing, Apple-style concentric rings, and animated Shader effects.
+
+
