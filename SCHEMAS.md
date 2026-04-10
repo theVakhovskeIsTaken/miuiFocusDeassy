@@ -1,100 +1,213 @@
 # Dynamic Island: Exhaustive JSON Schemas
 
-The `param_island` object is bound to stringent data models in the background. Here is the *exhaustive* list of all properties and child objects mapped exactly from the SystemUI `model` classes (`miui.systemui.dynamicisland.model.*`). 
+The `param_island` object is bound to stringent data models in the background. To make testing seamless, here is the *exhaustive* list of all properties and child objects mapped exactly from the SystemUI `model` classes (`miui.systemui.dynamicisland.model.*`), presented as **fully copy-pasteable JSON mockups** that you can drop directly into your testing payload.
 
 ### `PicInfo` (Icon & Image Settings)
 Used whenever an image or animation must be rendered.
 ```json
-"picInfo": {
-  "type": 0,                      // 0: Resource ID/String, 1: File Path, 2: Lottie View
-  "pic": "miui.focus.icon",       // Path, string, or resource identifier
-  "loop": false,                  // For type 2 (Lottie): Should the animation loop?
-  "autoplay": true,               // For type 2 (Lottie): Autoplay on display?
-  "number": -1,                   // Internal grouping identifier
-  "contentDescription": "Icon",   // Accessibility description
-  "effectColor": "#FF0000",       // Shading effect applied specifically to this icon
-  "effectSrc": "shader.json"      // Specific shader animation file to apply behind icon
+{
+  "param_v2": {
+    "protocol": 3,
+    "business": "pic_info_demo",
+    "updatable": true,
+    "isShowNotification": true,
+    "param_island": {
+      "islandPriority": 0,
+      "smallIslandArea": {
+        "picInfo": {
+          "type": 0,
+          "pic": "miui.focus.icon",
+          "loop": false,
+          "autoplay": true,
+          "number": -1,
+          "contentDescription": "Icon",
+          "effectColor": "#FF0000"
+        }
+      }
+    },
+    "baseInfo": { "type": 1, "title": "PicInfo Demo", "content": "Testing PicInfo" },
+    "iconTextInfo": { "animIconInfo": { "type": 0, "src": "miui.focus.icon" }, "title": "PicInfo Demo", "content": "Testing PicInfo" }
+  },
+  "isShowNotification": true
 }
 ```
 
 ### `ProgressInfo` (Progress Indicators)
 Used primarily in `CombinePicInfo` or `ProgressTextInfo`.
 ```json
-"progressInfo": {
-  "progress": 75,                 // Integer 0-100 indicating percentage
-  "colorReach": "#34C759",        // HEX Color of the "filled" portion
-  "colorUnReach": "#E5E5EA",      // HEX Color of the "empty" background track
-  "isCCW": false                  // Boolean mode: Count-Clockwise rendering
+{
+  "param_v2": {
+    "protocol": 3,
+    "business": "progress_demo",
+    "updatable": true,
+    "isShowNotification": true,
+    "param_island": {
+      "islandPriority": 0,
+      "bigIslandArea": {
+        "imageTextInfoLeft": {
+          "type": 1,
+          "textInfo": { "title": "Downloading..." }
+        },
+        "progressTextInfo": {
+          "progressInfo": {
+            "progress": 75,
+            "colorReach": "#34C759",
+            "colorUnReach": "#E5E5EA",
+            "isCCW": false
+          }
+        }
+      }
+    },
+    "baseInfo": { "type": 1, "title": "ProgressInfo Demo", "content": "Testing ProgressInfo" },
+    "iconTextInfo": { "animIconInfo": { "type": 0, "src": "miui.focus.icon" }, "title": "ProgressInfo Demo", "content": "Testing ProgressInfo" }
+  },
+  "isShowNotification": true
 }
 ```
 
 ### `CombinePicInfo` (Small Island Badges)
 Primarily used in `smallIslandArea` to wrap an icon with a ring progress indicator.
 ```json
-"combinePicInfo": {
-  "picInfo": { ... },             // The central image (inherits PicInfo)
-  "smallPicInfo": { ... },        // An optional secondary/overlay image (inherits PicInfo)
-  "progressInfo": { ... }         // The ring wrapped around the icon (inherits ProgressInfo)
+{
+  "param_v2": {
+    "protocol": 3,
+    "business": "combine_pic_demo",
+    "updatable": true,
+    "isShowNotification": true,
+    "param_island": {
+      "islandPriority": 0,
+      "smallIslandArea": {
+        "combinePicInfo": {
+          "picInfo": { "type": 0, "pic": "ic_download" },
+          "smallPicInfo": { "type": 0, "pic": "ic_status" },
+          "progressInfo": { "progress": 45, "colorReach": "#0A84FF", "isCCW": false }
+        }
+      }
+    },
+    "baseInfo": { "type": 1, "title": "CombinePic Demo", "content": "Testing CombinePicInfo" },
+    "iconTextInfo": { "animIconInfo": { "type": 0, "src": "miui.focus.icon" }, "title": "CombinePic Demo", "content": "Testing CombinePicInfo" }
+  },
+  "isShowNotification": true
 }
 ```
 
 ### `ShareData` (Drag & Drop Intent Creation)
 This completely undocumented model enables **Native Drag & Drop**. If present, a user can literally drag the island down or onto another app to invoke Android's global Share menu or initiate a Drag & Drop transfer!
 ```json
-"shareData": {
-  "title": "Shared Title",                // Title of the Drag Shadow card
-  "content": "Description",               // Description of the Drag Shadow card
-  "pic": "ic_share_preview",              // Preview image for the Drag Shadow card
-  "shareContent": "URL or Payload",       // The actual data string sent to the receiving app
-  "sharePic": "ic_share_image"            // The actual image sent to the receiving app
+{
+  "param_v2": {
+    "protocol": 3,
+    "business": "share_data_demo",
+    "updatable": true,
+    "isShowNotification": true,
+    "param_island": {
+      "islandPriority": 0,
+      "shareData": {
+        "title": "Shared Title",
+        "content": "Description",
+        "pic": "ic_share_preview",
+        "shareContent": "URL or Payload",
+        "sharePic": "ic_share_image"
+      },
+      "smallIslandArea": { "picInfo": { "type": 0, "pic": "ic_share" } },
+      "bigIslandArea": { "imageTextInfoLeft": { "type": 1, "picInfo": { "type": 0, "pic": "ic_share" }, "textInfo": { "title": "Drag to share!" } } }
+    },
+    "baseInfo": { "type": 1, "title": "ShareData Demo", "content": "Testing ShareData" },
+    "iconTextInfo": { "animIconInfo": { "type": 0, "src": "miui.focus.icon" }, "title": "ShareData Demo", "content": "Testing ShareData" }
+  },
+  "isShowNotification": true
 }
 ```
 
 ### `FixedWidthDigitInfo` & `SameWidthDigitInfo` (Clocks/Timers/Scores)
 Used to render performance-sensitive, highly animated digit displays without jitter.
 ```json
-"fixedWidthDigitInfo": {          // OR "sameWidthDigitInfo":
-  "content": "Score:",            // The static text prefix
-  "digit": "24",                  // The numbers to render with fixed-width spacing
-  "showHighlightColor": true,     // Tint using the root `highlightColor` 
-  "turnAnim": true,               // Enables 3D flipping/turning animation when digits change
-  
-  // Specific to `SameWidthDigitInfo` only:
-  "timerInfo": {
-    "timerType": 0,               // 0: Count up, 1: Count down
-    "timerTotal": 60000,          // Total timer length (ms) 
-    "timerWhen": 1672531200000,   // Epoch absolute target time
-    "timerSystemCurrent": 0       // System time reference point
-  }
+{
+  "param_v2": {
+    "protocol": 3,
+    "business": "digit_demo",
+    "updatable": true,
+    "isShowNotification": true,
+    "param_island": {
+      "islandPriority": 0,
+      "bigIslandArea": {
+        "sameWidthDigitInfo": {
+          "content": "Score: ",
+          "digit": "24",
+          "showHighlightColor": true,
+          "turnAnim": true,
+          "timerInfo": {
+            "timerType": 0,
+            "timerTotal": 60000,
+            "timerWhen": 1672531200000,
+            "timerSystemCurrent": 0
+          }
+        }
+      }
+    },
+    "baseInfo": { "type": 1, "title": "DigitInfo Demo", "content": "Testing DigitInfo" },
+    "iconTextInfo": { "animIconInfo": { "type": 0, "src": "miui.focus.icon" }, "title": "DigitInfo Demo", "content": "Testing DigitInfo" }
+  },
+  "isShowNotification": true
 }
 ```
 
 ### `TextInfo` (Typographic Control & Titles)
 Used as the basic building block for text manipulation, supporting narrow fonts and custom styling.
 ```json
-"textInfo": {
-  "content": "Main Body",                 // The main text string
-  "frontTitle": "Prefix: ",               // Attached to the front of the content
-  "title": "Header",                      // Standard title string
-  "isTitleDigit": true,                   // Forces the system clock digit font
-  "narrowFont": true,                     // Applies MIUI's narrow condensed typeface
-  "showHighlightColor": true,             // Tints text with the root highlightColor
-  "turnAnim": true                        // Enables flip 3D animation when text changes
+{
+  "param_v2": {
+    "protocol": 3,
+    "business": "text_info_demo",
+    "updatable": true,
+    "isShowNotification": true,
+    "param_island": {
+      "islandPriority": 0,
+      "bigIslandArea": {
+        "imageTextInfoLeft": {
+          "type": 1,
+          "textInfo": {
+            "content": "Main Body",
+            "frontTitle": "Prefix: ",
+            "title": "Header",
+            "isTitleDigit": true,
+            "narrowFont": true,
+            "showHighlightColor": true,
+            "turnAnim": true
+          }
+        }
+      }
+    },
+    "baseInfo": { "type": 1, "title": "TextInfo Demo", "content": "Testing TextInfo" },
+    "iconTextInfo": { "animIconInfo": { "type": 0, "src": "miui.focus.icon" }, "title": "TextInfo Demo", "content": "Testing TextInfo" }
+  },
+  "isShowNotification": true
 }
 ```
 
 ### `ImageTextInfo` (Standard Text Layouts)
 The most common module type, especially for `imageTextInfoLeft` and `imageTextInfoRight`.
 ```json
-"imageTextInfo": {
-  "type": 1,                      // Layout Type Identifier (1-6)
-  "picInfo": { ... },             // Rendered on the Left or Right boundary depending on type
-  "textInfo": {                   // Basic Title/Subtitle rendering
-    "title": "Main Header",
-    "subTitle": "Details",
-    "descText": "Footnote"
+{
+  "param_v2": {
+    "protocol": 3,
+    "business": "image_text_demo",
+    "updatable": true,
+    "isShowNotification": true,
+    "param_island": {
+      "islandPriority": 0,
+      "bigIslandArea": {
+        "imageTextInfoLeft": {
+          "type": 1,
+          "picInfo": { "type": 0, "pic": "ic_status" },
+          "textInfo": { "title": "Main Header", "subTitle": "Details", "descText": "Footnote" }
+        }
+      }
+    },
+    "baseInfo": { "type": 1, "title": "ImageText Demo", "content": "Testing ImageTextInfo" },
+    "iconTextInfo": { "animIconInfo": { "type": 0, "src": "miui.focus.icon" }, "title": "ImageText Demo", "content": "Testing ImageTextInfo" }
   },
-  "progressInfo": { ... }         // Replaces SubTitle with a linear progress bar if type allows
+  "isShowNotification": true
 }
 ```
 
