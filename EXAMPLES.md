@@ -50,6 +50,7 @@ val paramJson = """
     "protocol": 3,
     "business": "sports_ticker",
     "updatable": true,
+    "isShowNotification": true,
     "islandPriority": 0,
     "highlightColor": "#FFCC00",
     "param_island": {
@@ -75,8 +76,20 @@ val paramJson = """
           }
         }
       }
+      }
+    },
+    "baseInfo": {
+      "type": 1,
+      "title": "LAL takes the lead!",
+      "content": "Quarter 4 ending..."
+    },
+    "iconTextInfo": {
+      "animIconInfo": { "type": 0, "src": "ic_sports" },
+      "title": "LAL takes the lead!",
+      "content": "Quarter 4 ending..."
     }
-  }
+  },
+  "isShowNotification": true
 }
 """.trimIndent()
 
@@ -102,6 +115,7 @@ val paramJson = """
     "protocol": 3,
     "business": "magical_item_found",
     "updatable": true,
+    "isShowNotification": true,
     "highlightColor": "#9932CC",
     "picInfo": {
       "type": 2, // Type 2 is LOTTIE
@@ -123,8 +137,21 @@ val paramJson = """
           }
         }
       }
+        }
+      }
+    },
+    "baseInfo": {
+      "type": 1,
+      "title": "Legendary Drop!",
+      "content": "Tap to claim..."
+    },
+    "iconTextInfo": {
+      "animIconInfo": { "type": 0, "src": "ic_loot" },
+      "title": "Legendary Drop!",
+      "content": "Tap to claim..."
     }
-  }
+  },
+  "isShowNotification": true
 }
 """.trimIndent()
 
@@ -159,6 +186,7 @@ val paramJson = """
     "protocol": 3,
     "business": "video_call",
     "updatable": true,
+    "isShowNotification": true,
     "highlightColor": "#34C759",
     "param_island": {
       "smallIslandArea": {
@@ -177,9 +205,21 @@ val paramJson = """
           "type": 6, // ModuleTextOverIcon (Large square video preview layout)
           "picInfo": { "type": 0, "pic": "live_preview" } // Resolves from Bundle!
         }
+        }
       }
+    },
+    "baseInfo": {
+      "type": 1,
+      "title": "Incoming Call",
+      "content": "Mom"
+    },
+    "iconTextInfo": {
+      "animIconInfo": { "type": 0, "src": "ic_call" },
+      "title": "Incoming Call",
+      "content": "Mom"
     }
-  }
+  },
+  "isShowNotification": true
 }
 """.trimIndent()
 
@@ -207,6 +247,7 @@ val paramJson = """
     "protocol": 3,
     "business": "cloud_sync",
     "updatable": true,
+    "isShowNotification": true,
     "islandPriority": 1,
     "highlightColor": "#0A84FF",
     "param_island": {
@@ -240,8 +281,20 @@ val paramJson = """
           }
         }
       }
+      }
+    },
+    "baseInfo": {
+      "type": 1,
+      "title": "Backing up to Xiaomi Cloud",
+      "content": "82% - 4 mins remaining"
+    },
+    "iconTextInfo": {
+      "animIconInfo": { "type": 0, "src": "ic_cloud" },
+      "title": "Backing up to Xiaomi Cloud",
+      "content": "82% - 4 mins remaining"
     }
-  }
+  },
+  "isShowNotification": true
 }
 """.trimIndent()
 

@@ -81,6 +81,7 @@ This example demonstrates deploying nearly every supported rendering feature sim
     "protocol": 3,
     "business": "com.example.playground_island",
     "updatable": true,
+    "isShowNotification": true,
     
     "param_island": {
       "islandPriority": 0,
@@ -134,7 +135,24 @@ This example demonstrates deploying nearly every supported rendering feature sim
           }
         }
       }
+    },
+    
+    "baseInfo": {
+      "type": 1,
+      "title": "System Update",
+      "content": "Preparing to install..."
+    },
+    "iconTextInfo": {
+      "animIconInfo": {
+        "type": 0,
+        "src": "ic_system_update",
+        "loop": true,
+        "autoplay": true
+      },
+      "title": "System Update",
+      "content": "Preparing to install..."
     }
-  }
+  },
+  "isShowNotification": true
 }
 ```
