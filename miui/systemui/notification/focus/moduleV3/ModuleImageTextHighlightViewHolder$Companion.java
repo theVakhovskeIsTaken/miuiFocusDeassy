@@ -1,0 +1,18 @@
+/*
+ * Decompiled with CFR 0.152.
+ * 
+ * Could not load the following classes:
+ *  kotlin.jvm.internal.h
+ */
+package miui.systemui.notification.focus.moduleV3;
+
+import kotlin.jvm.internal.h;
+
+public static final class ModuleImageTextHighlightViewHolder.Companion {
+    private ModuleImageTextHighlightViewHolder.Companion() {
+    }
+
+    public /* synthetic */ ModuleImageTextHighlightViewHolder.Companion(h h2) {
+        this();
+    }
+}
